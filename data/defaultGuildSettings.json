@@ -1,0 +1,84 @@
+{
+  "commandsUntilCooldown": {
+    "work": 5,
+    "crime": 5,
+    "rob": 1,
+    "slut": 3,
+    "beg": 1,
+    "withdraw": 1,
+    "deposit": 1,
+    "send": 1,
+    "cockfight":1,
+    "blackjack":1,
+    "slots":1,
+    "buy":1
+  },
+  "cooldowns": {
+    "work": 14400,
+    "crime": 14400,
+    "rob": 86400,
+    "slut": 86400,
+    "beg": 10,
+    "withdraw": 20,
+    "deposit": 20,
+    "send": 360,
+    "cockfight":1,
+    "blackjack":1,
+    "slots":1,
+    "buy":0
+  },
+  "payouts": {
+    "crime": {
+      "max": 300,
+      "min": 10
+    },
+    "work": {
+      "max": 250,
+      "min": 10
+    },
+    "slut": {
+      "max": 350,
+      "min": 100
+    }
+  },
+  "failrates": {
+    "crime": 50,
+    "rob": 70,
+    "slut": 40
+  },
+  "fines": {
+    "crime": {
+      "max": 250,
+      "min": 10
+    },
+    "work": {
+      "max": 250,
+      "min": 10
+    },
+    "slut": {
+      "max": 250,
+      "min": 100
+    }
+  },
+  "betting": {
+    "max": 10000,
+    "min": 100
+  },
+  "shop": {
+    "availableItems": "chicken,nft",
+    "chicken": {
+      "price":250,
+      "max":1
+    },
+    "nft": {
+      "price":800,
+      "max":5
+    }
+  },
+  "wallet_max": 50000,
+  "interest": 5,
+  "reply": 1,
+  "commandsUntilCooldownResetTime": 3600,
+  "coinname": "shmeckles",
+  "defaultLeaderboardEntries": 10
+}

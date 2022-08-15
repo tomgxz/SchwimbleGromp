@@ -1,0 +1,52 @@
+{
+  "commandsUntilCooldownRemaining": {
+    "work": 5,
+    "crime": 5,
+    "rob": 1,
+    "slut": 3,
+    "beg": 1,
+    "withdraw": 1,
+    "deposit": 1,
+    "send": 1,
+    "cockfight":1,
+    "blackjack":1,
+    "slots":1,
+    "buy":1
+  },
+  "firstCommandExecuted": {
+    "work": "",
+    "crime": "",
+    "rob": "",
+    "slut": "",
+    "beg": "",
+    "withdraw": "",
+    "deposit": "",
+    "send": "",
+    "cockfight":"",
+    "blackjack":"",
+    "slots":"",
+    "buy":""
+  },
+  "cooldowns": {
+    "work": "",
+    "crime": "",
+    "rob": "",
+    "slut": "",
+    "beg": "",
+    "withdraw": "",
+    "deposit": "",
+    "send": "",
+    "cockfight":"",
+    "blackjack":"",
+    "slots":"",
+    "buy":""
+  },
+  "inventory": {
+    "chicken": "",
+    "nft": ""
+  },
+  "wallet": 0,
+  "bank": 0,
+  "winnings": 0,
+  "losses": 0
+}
