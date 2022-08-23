@@ -17,7 +17,7 @@ class SchwimbleGromp():
         self.os=os
         self.datetime=datetime
 
-        self.bot=self.discord_commands.Bot(command_prefix="s.",intents=self.discord.Intents.all())
+        self.bot=self.discord_commands.Bot(command_prefix="..",intents=self.discord.Intents.all())
 
         @self.bot.event
         async def on_ready():
