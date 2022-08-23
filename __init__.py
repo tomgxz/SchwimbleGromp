@@ -1,3 +1,5 @@
+from utils.embed import PermissionErrorEmbed
+
 class SchwimbleGromp():
     def __init__(self):
         import discord,os,datetime
@@ -34,8 +36,24 @@ class SchwimbleGromp():
 
         @self.bot.command()
         async def spam(ctx,msg,amt=69):
+            return
             for i in range(amt):
                 await ctx.send(msg)
+
+        @self.bot.command()
+        async def clear(ctx,amt):
+            return
+            if not ctx.message.author.guild_permissions.administrator:
+                await ctx.send(embed=PermissionErrorEmbed(ctx=ctx,permission="administrator").embed)
+                return
+            amt=int(amt)
+            if amt > 100:
+                for i in range(amt//100):
+                    ctx.channel.purge(limit=100)
+                ctx.channel.purge(limit=amt%100)
+            else:
+                await ctx.channel.purge(limit=amt)
+            
 
         from utils.database import Database
         from cogs import Economy, Games, Shop
