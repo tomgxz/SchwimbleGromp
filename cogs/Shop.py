@@ -24,7 +24,7 @@ class Shop(commands.Cog):
         await ctx.send(embed=Embed(ctx=ctx,message=f"Your new bank balance is {humanize.humanizeNumber(self.db.getUserBalances(ctx.author.id,ctx.guild.id)[1])}").embed)
 
     async def openAccount(self,user,guildid):
-        if user.id not in self.db.getDiscordUserList(): self.db.addUser(user.id,guildid,self.defaultUserSettings)
+        if user.id not in self.db.getDiscordUserList(guildid): self.db.addUser(user.id,guildid,self.defaultUserSettings)
 
     # COMMANDS
 

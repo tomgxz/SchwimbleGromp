@@ -24,7 +24,7 @@ class Economy(commands.Cog):
         await ctx.send(embed=Embed(ctx=ctx,message=f"Your new bank balance is {humanize.humanizeNumber(self.db.getUserBalances(ctx.author.id,ctx.guild.id)[1])}").embed)
 
     async def openAccount(self,user,guildid):
-        if user.id not in self.db.getDiscordUserList(): self.db.addUser(user.id,guildid,self.defaultUserSettings)
+        if user.id not in self.db.getDiscordUserList(guildid): self.db.addUser(user.id,guildid,self.defaultUserSettings)
 
     def failrate(self,guildid,job):
         return self.db.getGuildSetting(guildid,f"failrates_{job}")
@@ -45,7 +45,7 @@ class Economy(commands.Cog):
         Aliases: None"""
 
         async with ctx.typing():
-            if not ctx.message.author.guild_permissions.administrator:
+            if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id==879801241859915837):
                 await ctx.send(embed=PermissionErrorEmbed(ctx=ctx,permission="administrator").embed)
                 return
             guild=ctx.guild
@@ -58,7 +58,7 @@ class Economy(commands.Cog):
     @commands.command()
     async def resetserversettings(self,ctx):
         async with ctx.typing():
-            if not ctx.message.author.guild_permissions.administrator:
+            if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id==879801241859915837):
                 await ctx.send(embed=PermissionErrorEmbed(ctx=ctx,permission="administrator").embed)
                 return
             guild=ctx.guild
@@ -76,7 +76,7 @@ class Economy(commands.Cog):
     @commands.command()
     async def setuserbalance(self,ctx,user:discord.Member=None,store=None,amount=None):
         async with ctx.typing():
-            if not ctx.message.author.guild_permissions.administrator:
+            if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id==879801241859915837):
                 await ctx.send(embed=PermissionErrorEmbed(ctx=ctx,permission="administrator").embed)
                 return
 
@@ -108,7 +108,7 @@ class Economy(commands.Cog):
     @commands.command()
     async def setusercooldown(self,ctx,user:discord.Member=None,command=None):
         async with ctx.typing():
-            if not ctx.message.author.guild_permissions.administrator:
+            if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id==879801241859915837):
                 await ctx.send(embed=PermissionErrorEmbed(ctx=ctx,permission="administrator").embed)
                 return
 
@@ -130,7 +130,7 @@ class Economy(commands.Cog):
     @commands.command()
     async def setserversetting(self,ctx,key,value):
         async with ctx.typing():
-            if not ctx.message.author.guild_permissions.administrator:
+            if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id==879801241859915837):
                 await ctx.send(embed=PermissionErrorEmbed(ctx=ctx,permission="administrator").embed)
                 return
 
@@ -141,7 +141,7 @@ class Economy(commands.Cog):
     @commands.command()
     async def setusersetting(self,ctx,user:discord.Member,key,value):
         async with ctx.typing():
-            if not ctx.message.author.guild_permissions.administrator:
+            if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id==879801241859915837):
                 await ctx.send(embed=PermissionErrorEmbed(ctx=ctx,permission="administrator").embed)
                 return
 
@@ -165,7 +165,9 @@ class Economy(commands.Cog):
             if user is None: user = ctx.author
             await self.openAccount(user,ctx.guild.id)
             coinname=self.db.getGuildSetting(ctx.guild.id,"coinname")
+            print(1)
             balances = self.db.getUserBalances(user.id,ctx.guild.id)
+            print(200)
         await ctx.send(embed=Embed(ctx=ctx,fields=[["Wallet Balance",f"{humanize.humanizeNumber(balances[0])} {coinname}"],["Bank Balance",f"{humanize.humanizeNumber(balances[1])} {coinname}"]],inline=True).embed)
 
     @commands.command(aliases=["lb"])

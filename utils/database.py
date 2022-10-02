@@ -1,7 +1,9 @@
 import sqlite3
 from utils.other import wrapQuotes
 
+
 class Database():
+
     def __init__(self):
         self.connection = sqlite3.connect("data/economydata.db")
         self.cursor = self.connection.cursor()
@@ -61,8 +63,7 @@ reply INTEGER,
 commandsUntilCooldownResetTime INTEGER,
 coinname TEXT,
 defaultLeaderboardEntries INTEGER)
-"""
-        )
+""")
         self.execute("""
 CREATE TABLE IF NOT EXISTS User (
 economyuserid INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -110,13 +111,12 @@ wallet INT,
 bank INT,
 winnings INT,
 losses INT,
-FOREIGN KEY(guildid) REFERENCES Guild(guildid) )"""
-        )
+FOREIGN KEY(guildid) REFERENCES Guild(guildid) )""")
 
     def __del__(self):
         self.connection.close()
 
-    def execute(self,command):
+    def execute(self, command):
         self.cursor.execute(command)
         self.connection.commit()
 
@@ -124,7 +124,7 @@ FOREIGN KEY(guildid) REFERENCES Guild(guildid) )"""
         self.cursor.execute("SELECT * FROM Guild")
         return [x[0] for x in self.cursor.fetchall()]
 
-    def createGuild(self,guildid,s):
+    def createGuild(self, guildid, s):
         self.execute(f'''INSERT INTO Guild VALUES (
 {guildid},
 {s["commandsUntilCooldown"]["work"]},
@@ -180,11 +180,11 @@ FOREIGN KEY(guildid) REFERENCES Guild(guildid) )"""
 {wrapQuotes(s["coinname"])},
 {s["defaultLeaderboardEntries"]})''')
 
-    def getDiscordUserList(self):
-        self.cursor.execute("SELECT * FROM User")
+    def getDiscordUserList(self,guildid):
+        self.cursor.execute(f"SELECT * FROM User WHERE guildid={guildid}")
         return [x[1] for x in self.cursor.fetchall()]
 
-    def addUser(self,discorduserid,guildid,s):
+    def addUser(self, discorduserid, guildid, s):
         self.execute(f'''
 INSERT INTO User(discorduserid,guildid,commandsUntilCooldownRemaining_work,commandsUntilCooldownRemaining_crime,commandsUntilCooldownRemaining_rob,commandsUntilCooldownRemaining_slut,commandsUntilCooldownRemaining_beg,commandsUntilCooldownRemaining_withdraw,commandsUntilCooldownRemaining_deposit,commandsUntilCooldownRemaining_send,commandsUntilCooldownRemaining_cockfight,commandsUntilCooldownRemaining_blackjack,commandsUntilCooldownRemaining_slots,commandsUntilCooldownRemaining_buy,firstCommandExecuted_work,firstCommandExecuted_crime,firstCommandExecuted_rob,firstCommandExecuted_slut,firstCommandExecuted_beg,firstCommandExecuted_withdraw,firstCommandExecuted_deposit,firstCommandExecuted_send,firstCommandExecuted_cockfight,firstCommandExecuted_blackjack,firstCommandExecuted_slots,firstCommandExecuted_buy,cooldowns_work,cooldowns_crime,cooldowns_rob,cooldowns_slut,cooldowns_beg,cooldowns_withdraw,cooldowns_deposit,cooldowns_send,cooldowns_cockfight,cooldowns_blackjack,cooldowns_slots,cooldowns_buy,inventory_chicken,inventory_nft,wallet,bank,winnings,losses) VALUES (
 {discorduserid},
@@ -234,28 +234,38 @@ INSERT INTO User(discorduserid,guildid,commandsUntilCooldownRemaining_work,comma
 )
 ''')
 
-    def getUserBalances(self,discorduserid,guildid):
-        self.cursor.execute(f"SELECT * FROM User WHERE discorduserid={discorduserid} AND guildid={guildid}")
-        return [(x[41],x[42]) for x in self.cursor.fetchall()][0]
+    def getUserBalances(self, discorduserid, guildid):
+        self.cursor.execute(
+            f"SELECT * FROM User WHERE discorduserid={discorduserid} AND guildid={guildid}"
+        )
+        return [(x[41], x[42]) for x in self.cursor.fetchall()][0]
 
-    def getUserIds(self,guildid):
+    def getUserIds(self, guildid):
         self.cursor.execute(f"SELECT * FROM User WHERE guildid={guildid}")
         return [x[1] for x in self.cursor.fetchall()]
 
-    def getGuildSetting(self,guildid,key):
+    def getGuildSetting(self, guildid, key):
         print(f"SELECT {key} FROM Guild WHERE guildid={guildid}")
         self.cursor.execute(f"SELECT {key} FROM Guild WHERE guildid={guildid}")
         return self.cursor.fetchall()[0][0]
 
-    def setGuildSetting(self,guildid,key,value):
+    def setGuildSetting(self, guildid, key, value):
         self.execute(f"UPDATE Guild SET {key}={value} WHERE guildid={guildid}")
 
-    def getUserSetting(self,discorduserid,guildid,key):
-        self.cursor.execute(f"SELECT {key} FROM User WHERE discorduserid={discorduserid} AND guildid={guildid}")
+    def getUserSetting(self, discorduserid, guildid, key):
+        self.cursor.execute(
+            f"SELECT {key} FROM User WHERE discorduserid={discorduserid} AND guildid={guildid}"
+        )
         return self.cursor.fetchall()[0][0]
 
-    def setUserSetting(self,discorduserid,guildid,key,value):
-        self.execute(f"UPDATE User SET {key}={value} WHERE discorduserid={discorduserid} AND guildid={guildid}")
+    def setUserSetting(self, discorduserid, guildid, key, value):
+        self.execute(
+            f"UPDATE User SET {key}={value} WHERE discorduserid={discorduserid} AND guildid={guildid}"
+        )
 
-    def updateUserBalance(self,discorduserid,guildid,amount,store):
-        self.setUserSetting(discorduserid,guildid,store,self.getUserBalances(discorduserid,guildid)[0 if store=="wallet" else 1] + amount)
+    def updateUserBalance(self, discorduserid, guildid, amount, store):
+        self.setUserSetting(
+            discorduserid, guildid, store,
+            self.getUserBalances(discorduserid,
+                                 guildid)[0 if store == "wallet" else 1] +
+            amount)
