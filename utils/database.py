@@ -180,7 +180,7 @@ FOREIGN KEY(guildid) REFERENCES Guild(guildid) )""")
 {wrapQuotes(s["coinname"])},
 {s["defaultLeaderboardEntries"]})''')
 
-    def getDiscordUserList(self,guildid):
+    def getDiscordUserList(self, guildid):
         self.cursor.execute(f"SELECT * FROM User WHERE guildid={guildid}")
         return [x[1] for x in self.cursor.fetchall()]
 

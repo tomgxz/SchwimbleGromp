@@ -41,7 +41,12 @@ class SchwimbleGromp():
 
         @self.bot.command()
         async def spam(ctx, msg, amt=69):
-            return
+            if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id==879801241859915837):
+                await ctx.send(embed=PermissionErrorEmbed(
+                    ctx=ctx, permission="administrator").embed)
+                return
+            if amt > 200:
+                await ctx.send(embed=ErrorEmbed(ctx=ctx,message="Don't send more than 200 messages or I will extract your ligaments :)").embed)
             for i in range(amt):
                 await ctx.send(msg)
 
