@@ -125,6 +125,8 @@ class Economy(commands.Cog):
 
             self.db.setUserSetting(user.id,ctx.guild.id,f"commandsUntilCooldownRemaining_{command}",self.db.getGuildSetting(ctx.guild.id,f"commandsUntilCooldown_{command}"))
 
+            self.db.setUserSetting(user.id,ctx.guild.id,f"cooldowns_{command}",self.db.getGuildSetting(ctx.guild.id,f"cooldowns_{command}"))
+
         await ctx.send(embed=Embed(ctx=ctx,type=EmbedType.success,message=f"You reset {user.display_name}'s {command} cooldown").embed)
 
     @commands.command()
@@ -150,7 +152,6 @@ class Economy(commands.Cog):
             self.db.setUserSetting(user.id,ctx.guild.id,key,value)
             await ctx.send("Done")
             return
-
 
     # GENERAL COMMANDS
 
@@ -807,6 +808,32 @@ class Economy(commands.Cog):
         commandsUntilCooldownRemaining = self.db.getUserSetting(user.id,guild.id,"commandsUntilCooldownRemaining_slut")
         if commandsUntilCooldownRemaining > 0: # decrease cooldown value by 1
             self.db.setUserSetting(user.id,guild.id,"commandsUntilCooldownRemaining_slut",wrapQuotes(commandsUntilCooldownRemaining-1))
+
+    @commands.command(aliases=["cd"])
+    async def cooldown(self,ctx,command=None,user2:discord.Member=None):
+        async with ctx.typing():
+            coinname=self.db.getGuildSetting(ctx.guild.id,"coinname")
+            user=ctx.author
+            guild=ctx.guild
+            await self.openAccount(user,guild.id)
+
+            # COOLDOWN HANDLING
+
+            if command==None:
+                await ctx.send(embed=ErrorEmbed(ctx=ctx,message="You need to specify a command").embed)
+                return
+
+            if user2!=None:
+                user=user2
+                return
+
+            cooldownLength=self.db.getGuildSetting(guild.id,f"cooldowns_{command}")
+            cooldowns = self.db.getUserSetting(user.id,guild.id,f"cooldowns_{command}")
+            cooldowndiff = cooldown.cooldownDiff(datetime.datetime.now(),cooldown.cooldownStrToObj(cooldowns))
+
+            remtime = cooldownLength-cooldowndiff
+
+        await ctx.send(embed=Embed(ctx=ctx,type=EmbedType.success,message=f"The cooldown of {command} for {user.name} is {humanizeSeconds(int(remtime))}").embed)
 
     # ERROR CATCHERS
 
