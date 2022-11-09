@@ -5,7 +5,7 @@ def csvToList(x): return x.split(",")
 
 def listToCsv(x):
     y = ""
-    for item in x: y = f'"{y}",'
+    for item in x: y += f'"{item}",'
     return y[:-1]
 
 def removeAll(list,*terms):
