@@ -65,6 +65,7 @@ class SchwimbleGromp():
             else:
                 await ctx.channel.purge(limit=amt)
 
+<<<<<<< Updated upstream
         @self.bot.command()
         async def whois(ctx, user: discord.Member = None):
             if user == None: await ctx.send("You forgot to specify a user")
@@ -125,6 +126,8 @@ class SchwimbleGromp():
                         "*has an entire lego collection made about him*",
                         "*heavy fantasyphet addict*"
                     ]))
+=======
+>>>>>>> Stashed changes
 
         from utils.database import Database
         from cogs import Economy, Games, Shop
