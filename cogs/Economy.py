@@ -181,7 +181,7 @@ class Economy(commands.Cog):
         async with ctx.typing():
             coinname=self.db.getGuildSetting(ctx.guild.id,"coinname")
             if amount==None: amount=self.db.getGuildSetting(ctx.guild.id,"defaultLeaderboardEntries")
-            if not amount.isdigit():
+            elif not amount.isdigit():
                 await ctx.send(embed=ErrorEmbed(ctx=ctx,message="`Amount` needs to be a whole number").embed)
                 return
             lb = {}; total = []; amount=int(amount)
