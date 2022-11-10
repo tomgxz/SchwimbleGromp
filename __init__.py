@@ -1,4 +1,4 @@
-from utils.embed import PermissionErrorEmbed
+from utils.embed import PermissionErrorEmbed, ErrorEmbed
 import discord
 
 
