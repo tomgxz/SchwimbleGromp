@@ -12,43 +12,21 @@ class Economy(commands.Cog):
         self.bot = bot
         self.db = database
 
-        with open("data/defaultGuildSettings.json", "r") as f:
-            self.defaultGuildSettings = json.load(f)
-        with open("data/defaultUserSettings.json", "r") as f:
-            self.defaultUserSettings = json.load(f)
+        with open("data/defaultGuildSettings.json", "r") as f: self.defaultGuildSettings = json.load(f)
+        with open("data/defaultUserSettings.json", "r") as f: self.defaultUserSettings = json.load(f)
 
     # UTILS
 
-    async def newWalletBalance(self, ctx):
-        await ctx.send(embed=Embed(
-            ctx=ctx,
-            message=
-            f"Your new wallet balance is {humanize.humanizeNumber(self.db.getUserBalances(ctx.author.id,ctx.guild.id)[0])} {self.db.getGuildSetting(ctx.guild.id,'coinname')}"
-        ).embed)
+    async def newWalletBalance(self,ctx): await ctx.send(embed=Embed(ctx=ctx,message=f"Your new wallet balance is {humanize.humanizeNumber(self.db.getUserBalances(ctx.author.id,ctx.guild.id)[0])} {self.db.getGuildSetting(ctx.guild.id,'coinname')}").embed)
 
-    async def newBankBalance(self, ctx):
-        await ctx.send(embed=Embed(
-            ctx=ctx,
-            message=
-            f"Your new bank balance is {humanize.humanizeNumber(self.db.getUserBalances(ctx.author.id,ctx.guild.id)[1])}"
-        ).embed)
+    async def newBankBalance(self,ctx): await ctx.send(embed=Embed(ctx=ctx,message=f"Your new bank balance is {humanize.humanizeNumber(self.db.getUserBalances(ctx.author.id,ctx.guild.id)[1])}").embed)
 
-    async def openAccount(self, user, guildid):
-        if user.id not in self.db.getDiscordUserList(guildid):
-            self.db.addUser(user.id, guildid, self.defaultUserSettings)
+    async def openAccount(self,user,guildid):
+        if user.id not in self.db.getDiscordUserList(guildid): self.db.addUser(user.id,guildid,self.defaultUserSettings)
 
-    def failrate(self, guildid, job):
-        return self.db.getGuildSetting(guildid, f"failrates_{job}")
-
-    def payout(self, guildid, job):
-        return random.randint(
-            self.db.getGuildSetting(guildid, f"payouts_{job}_min"),
-            self.db.getGuildSetting(guildid, f"payouts_{job}_max"))
-
-    def fine(self, guildid, job):
-        return random.randint(
-            self.db.getGuildSetting(guildid, f"fines_{job}_min"),
-            self.db.getGuildSetting(guildid, f"fines_{job}_max"))
+    def failrate(self,guildid,job): return self.db.getGuildSetting(guildid,f"failrates_{job}")
+    def payout(self,guildid,job): return random.randint(self.db.getGuildSetting(guildid,f"payouts_{job}_min"),self.db.getGuildSetting(guildid,f"payouts_{job}_max"))
+    def fine(self,guildid,job): return random.randint(self.db.getGuildSetting(guildid,f"fines_{job}_min"),self.db.getGuildSetting(guildid,f"fines_{job}_max"))
 
     # ADMIN COMMANDS
 
@@ -105,11 +83,7 @@ class Economy(commands.Cog):
             return
 
     @commands.command()
-    async def setuserbalance(self,
-                             ctx,
-                             user: discord.Member = None,
-                             store=None,
-                             amount=None):
+    async def setuserbalance(self,ctx,user: discord.Member = None,store=None,amount=None):
         async with ctx.typing():
             if (not ctx.message.author.guild_permissions.administrator) and (
                     not ctx.message.author.id == 879801241859915837):
@@ -145,18 +119,10 @@ class Economy(commands.Cog):
 
             self.db.setUserSetting(user.id, ctx.guild.id, store, amount)
 
-        await ctx.send(embed=Embed(
-            ctx=ctx,
-            type=EmbedType.success,
-            message=
-            f"You gave {user.display_name} {humanize.humanizeNumber(amount)} {coinname}"
-        ).embed)
+        await ctx.send(embed=Embed(ctx=ctx,type=EmbedType.success,message=f"You gave {user.display_name} {humanize.humanizeNumber(amount)} {coinname}").embed)
 
     @commands.command()
-    async def setusercooldown(self,
-                              ctx,
-                              user: discord.Member = None,
-                              command=None):
+    async def setusercooldown(self,ctx,user: discord.Member = None,command=None):
         async with ctx.typing():
             if (not ctx.message.author.guild_permissions.administrator) and (
                     not ctx.message.author.id == 879801241859915837):
@@ -232,22 +198,10 @@ class Economy(commands.Cog):
 
         async with ctx.typing():
             if user is None: user = ctx.author
-            await self.openAccount(user, ctx.guild.id)
-            coinname = self.db.getGuildSetting(ctx.guild.id, "coinname")
-            print(1)
-            balances = self.db.getUserBalances(user.id, ctx.guild.id)
-            print(200)
-        await ctx.send(embed=Embed(
-            ctx=ctx,
-            fields=[[
-                "Wallet Balance",
-                f"{humanize.humanizeNumber(balances[0])} {coinname}"
-            ],
-                    [
-                        "Bank Balance",
-                        f"{humanize.humanizeNumber(balances[1])} {coinname}"
-                    ]],
-            inline=True).embed)
+            await self.openAccount(user,ctx.guild.id)
+            coinname=self.db.getGuildSetting(ctx.guild.id,"coinname")
+            balances = self.db.getUserBalances(user.id,ctx.guild.id)
+        await ctx.send(embed=Embed(ctx=ctx,fields=[["Wallet Balance",f"{humanize.humanizeNumber(balances[0])} {coinname}"],["Bank Balance",f"{humanize.humanizeNumber(balances[1])} {coinname}"]],inline=True).embed)
 
     @commands.command(aliases=["lb"])
     async def leaderboard(self, ctx, amount=None):
@@ -308,62 +262,32 @@ class Economy(commands.Cog):
 
             # COOLDOWN HANDLING
 
-            commandsUntilCooldown = self.db.getGuildSetting(
-                ctx.guild.id, "commandsUntilCooldown_withdraw")
-            commandsUntilCooldownRemaining = self.db.getUserSetting(
-                user.id, ctx.guild.id,
-                "commandsUntilCooldownRemaining_withdraw")
-            firstCommandExecuted = self.db.getUserSetting(
-                user.id, ctx.guild.id, "firstCommandExecuted_withdraw")
-            cooldownLength = self.db.getGuildSetting(ctx.guild.id,
-                                                     "cooldowns_withdraw")
+            commandsUntilCooldown = self.db.getGuildSetting(ctx.guild.id, "commandsUntilCooldown_withdraw")
+            commandsUntilCooldownRemaining = self.db.getUserSetting(user.id, ctx.guild.id,"commandsUntilCooldownRemaining_withdraw")
+            firstCommandExecuted = self.db.getUserSetting(user.id, ctx.guild.id, "firstCommandExecuted_withdraw")
+            cooldownLength = self.db.getGuildSetting(ctx.guild.id,"cooldowns_withdraw")
 
             if commandsUntilCooldownRemaining == 0:  # if the cooldown is active (at 0)
-                cooldowns = self.db.getUserSetting(user.id, ctx.guild.id,
-                                                   "cooldowns_withdraw")
-                cooldowndiff = cooldown.cooldownDiff(
-                    datetime.datetime.now(),
-                    cooldown.cooldownStrToObj(cooldowns))
+                cooldowns = self.db.getUserSetting(user.id, ctx.guild.id,"cooldowns_withdraw")
+                cooldowndiff = cooldown.cooldownDiff(datetime.datetime.now(),cooldown.cooldownStrToObj(cooldowns))
 
                 if cooldowndiff >= cooldownLength:  # if the cooldown has completed, reset the cooldown stats and run the command
-                    self.db.setUserSetting(
-                        user.id, ctx.guild.id,
-                        "commandsUntilCooldownRemaining_withdraw",
-                        commandsUntilCooldown)
+                    self.db.setUserSetting(user.id, ctx.guild.id,"commandsUntilCooldownRemaining_withdraw",commandsUntilCooldown)
                     commandsUntilCooldownRemaining = commandsUntilCooldown
-                    self.db.setUserSetting(user.id, ctx.guild.id,
-                                           "firstCommandExecuted_withdraw",
-                                           '""')
+                    self.db.setUserSetting(user.id, ctx.guild.id,"firstCommandExecuted_withdraw",'""')
 
                 else:  # if the cooldown is still active stop the command
-                    await ctx.send(
-                        embed=CooldownEmbed(ctx=ctx,
-                                            message=f"withdraw any {coinname}",
-                                            remainingTime=cooldownLength -
-                                            cooldowndiff).embed)
+                    await ctx.send(embed=CooldownEmbed(ctx=ctx,message=f"withdraw any {coinname}",remainingTime=cooldownLength-cooldowndiff).embed)
                     return
 
             if firstCommandExecuted != "":
-                if cooldown.cooldownDiff(
-                        datetime.datetime.now(),
-                        cooldown.cooldownStrToObj(firstCommandExecuted)
-                ) > self.db.getGuildSetting(
-                        ctx.guild.id, "commandsUntilCooldownResetTime"
-                ):  # if the time since the first command is greater than the command reset window time
-                    self.db.setUserSetting(
-                        user.id, ctx.guild.id,
-                        "commandsUntilCooldownRemaining_withdraw",
-                        wrapQuotes(commandsUntilCooldown))
+                if cooldown.cooldownDiff(datetime.datetime.now(),cooldown.cooldownStrToObj(firstCommandExecuted)) > self.db.getGuildSetting(ctx.guild.id, "commandsUntilCooldownResetTime"):  # if the time since the first command is greater than the command reset window time
+                    self.db.setUserSetting(user.id, ctx.guild.id,"commandsUntilCooldownRemaining_withdraw",wrapQuotes(commandsUntilCooldown))
 
             if commandsUntilCooldownRemaining == commandsUntilCooldown:  # if the first command has not yet been executed set the start time for the command reset window
-                self.db.setUserSetting(
-                    user.id, ctx.guild.id, "firstCommandExecuted_withdraw",
-                    wrapQuotes(cooldown.currentCooldownTime()))
+                self.db.setUserSetting(user.id, ctx.guild.id, "firstCommandExecuted_withdraw",wrapQuotes(cooldown.currentCooldownTime()))
 
-            if commandsUntilCooldownRemaining == 1:
-                self.db.setUserSetting(
-                    user.id, ctx.guild.id, "cooldowns_withdraw",
-                    wrapQuotes(cooldown.currentCooldownTime()))
+            if commandsUntilCooldownRemaining == 1: self.db.setUserSetting(user.id,ctx.guild.id,"cooldowns_withdraw",wrapQuotes(cooldown.currentCooldownTime()))
 
             # COMMAND HANDLING
 
@@ -689,6 +613,32 @@ class Economy(commands.Cog):
             self.db.setUserSetting(
                 user.id, ctx.guild.id, "commandsUntilCooldownRemaining_send",
                 wrapQuotes(commandsUntilCooldownRemaining - 1))
+
+    @commands.command(aliases=["cd"])
+    async def cooldown(self,ctx,command=None,user2:discord.Member=None):
+        async with ctx.typing():
+            coinname=self.db.getGuildSetting(ctx.guild.id,"coinname")
+            user=ctx.author
+            guild=ctx.guild
+            await self.openAccount(user,guild.id)
+
+            # COOLDOWN HANDLING
+
+            if command==None:
+                await ctx.send(embed=ErrorEmbed(ctx=ctx,message="You need to specify a command").embed)
+                return
+
+            if user2!=None:
+                user=user2
+                return
+
+            cooldownLength=self.db.getGuildSetting(guild.id,f"cooldowns_{command}")
+            cooldowns = self.db.getUserSetting(user.id,guild.id,f"cooldowns_{command}")
+            cooldowndiff = cooldown.cooldownDiff(datetime.datetime.now(),cooldown.cooldownStrToObj(cooldowns))
+
+            remtime = cooldownLength-cooldowndiff
+
+        await ctx.send(embed=Embed(ctx=ctx,type=EmbedType.success,message=f"The cooldown of {command} for {user.name} is {humanize.humanizeSeconds(int(remtime))}").embed)
 
     # EARNING MONEY COMMANDS
 
@@ -1249,41 +1199,6 @@ class Economy(commands.Cog):
             self.db.setUserSetting(
                 user.id, guild.id, "commandsUntilCooldownRemaining_slut",
                 wrapQuotes(commandsUntilCooldownRemaining - 1))
-
-    @commands.command(aliases=["cd"])
-    async def cooldown(self, ctx, command=None, user2: discord.Member = None):
-        async with ctx.typing():
-            coinname = self.db.getGuildSetting(ctx.guild.id, "coinname")
-            user = ctx.author
-            guild = ctx.guild
-            await self.openAccount(user, guild.id)
-
-            # COOLDOWN HANDLING
-
-            if command == None:
-                await ctx.send(embed=ErrorEmbed(
-                    ctx=ctx, message="You need to specify a command").embed)
-                return
-
-            if user2 != None:
-                user = user2
-                return
-
-            cooldownLength = self.db.getGuildSetting(guild.id,
-                                                     f"cooldowns_{command}")
-            cooldowns = self.db.getUserSetting(user.id, guild.id,
-                                               f"cooldowns_{command}")
-            cooldowndiff = cooldown.cooldownDiff(
-                datetime.datetime.now(), cooldown.cooldownStrToObj(cooldowns))
-
-            remtime = cooldownLength - cooldowndiff
-
-        await ctx.send(embed=Embed(
-            ctx=ctx,
-            type=EmbedType.success,
-            message=
-            f"The cooldown of {command} for {user.name} is {humanize.humanizeSeconds(int(remtime))}"
-        ).embed)
 
     # ERROR CATCHERS
 

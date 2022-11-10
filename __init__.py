@@ -1,13 +1,13 @@
 from utils.embed import PermissionErrorEmbed, ErrorEmbed
-import discord
+import discord,time
 
 
 class SchwimbleGromp():
 
     def __init__(self):
-        import discord, os, datetime, random
+        import discord, os, datetime, random, json, threading
         from discord.ext import commands, tasks
-        from utils import keepAlive, formatting
+        from utils import keepAlive, formatting, cooldown
 
         from dotenv import load_dotenv
         load_dotenv()
@@ -17,12 +17,12 @@ class SchwimbleGromp():
         self.discord_tasks = tasks
         self.utils_keepAlive = keepAlive
         self.utils_formatting = formatting
+        self.utils_cooldown = cooldown
         self.os = os
         self.datetime = datetime
         self.random = random
 
-        self.bot = self.discord_commands.Bot(
-            command_prefix="..", intents=self.discord.Intents.all())
+        self.bot = self.discord_commands.Bot(command_prefix="..", intents=self.discord.Intents.all())
 
         @self.bot.event
         async def on_ready():
@@ -32,38 +32,32 @@ class SchwimbleGromp():
             print('------')
 
         @self.bot.command()
-        async def humanizeSeconds(ctx, n):
-            await ctx.send(self.utils_chatFormatting.humanizeSeconds(n))
+        async def humanizeSeconds(ctx, n): await ctx.send(self.utils_chatFormatting.humanizeSeconds(n))
 
         @self.bot.command()
-        async def kms(ctx):
-            await ctx.send("Father benjamin is bad")
+        async def kms(ctx): await ctx.send("Father benjamin is bad")
 
         @self.bot.command()
         async def spam(ctx, msg, amt=69):
             if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id==879801241859915837):
-                await ctx.send(embed=PermissionErrorEmbed(
-                    ctx=ctx, permission="administrator").embed)
+                await ctx.send(embed=PermissionErrorEmbed(ctx=ctx, permission="administrator").embed)
                 return
             if amt > 200:
                 await ctx.send(embed=ErrorEmbed(ctx=ctx,message="Don't send more than 200 messages or I will extract your ligaments :)").embed)
-            for i in range(amt):
-                await ctx.send(msg)
+                return
+            for i in range(amt): await ctx.send(msg)
 
         @self.bot.command()
         async def clear(ctx, amt):
             return
             if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id==879801241859915837):
-                await ctx.send(embed=PermissionErrorEmbed(
-                    ctx=ctx, permission="administrator").embed)
+                await ctx.send(embed=PermissionErrorEmbed(ctx=ctx, permission="administrator").embed)
                 return
             amt = int(amt)
             if amt > 100:
-                for i in range(amt // 100):
-                    ctx.channel.purge(limit=100)
+                for i in range(amt // 100): ctx.channel.purge(limit=100)
                 ctx.channel.purge(limit=amt % 100)
-            else:
-                await ctx.channel.purge(limit=amt)
+            else: await ctx.channel.purge(limit=amt)
 
         @self.bot.command()
         async def whois(ctx, user: discord.Member = None):
@@ -127,6 +121,45 @@ class SchwimbleGromp():
                         "*heavy fantasyphet addict*"
                     ]))
 
+        @self.bot.command()
+        async def remindme(ctx,command):
+            user=ctx.author
+            guild=ctx.guild
+            with open("data/reminders.json","r") as f: reminders=json.load(f)
+
+            if command not in ["work","crime","rob","slut","beg","withdraw","deposit","send","cockfight","blackjack","slots","buy"]:
+                await ctx.send(embed=ErrorEmbed(ctx=ctx,message=f"I don't recognise that command").embed)
+                return
+
+            commandsUntilCooldownRemaining = self.db.getUserSetting(user.id, ctx.guild.id,f"commandsUntilCooldownRemaining_{command}")
+            cooldownLength = self.db.getGuildSetting(ctx.guild.id,f"cooldowns_{command}")
+
+            if commandsUntilCooldownRemaining > 0:
+                await ctx.send(embed=ErrorEmbed(ctx=ctx,message=f"That command is not currently on cooldown").embed)
+                return
+
+            if commandsUntilCooldownRemaining == 0:  # if the cooldown is active (at 0)
+                cooldowns = self.db.getUserSetting(user.id, ctx.guild.id,f"cooldowns_{command}")
+                cooldowndiff = self.utils_cooldown.cooldownDiff(datetime.datetime.now(),self.utils_cooldown.cooldownStrToObj(cooldowns))
+
+                if cooldowndiff >= cooldownLength:  # if the cooldown has completed, reset the cooldown stats and run the command
+                    await ctx.send(embed=ErrorEmbed(ctx=ctx,message=f"That command is not currently on cooldown").embed)
+                    return
+
+            remainingtime=cooldownLength-cooldowndiff
+
+            reminders["reminders"].append({
+                "userid":user.id,
+                "message":f"You reminder for {command} just went off!",
+                "time":(self.datetime.datetime.now()+self.datetime.timedelta(seconds=remainingtime)).strftime("%Y-%m-%d %H:%M")
+            })
+
+        import asyncio
+
+        remindercheckthread = threading.Thread(target=asyncio.run,args=(self.remindercheck))
+        print(remindercheckthread)
+        remindercheckthread.start()
+
         from utils.database import Database
         from cogs import Economy, Games, Shop
 
@@ -138,6 +171,23 @@ class SchwimbleGromp():
         Shop.setup(self.bot, self.db)
         self.bot.run(token)
 
+    async def remindercheck(self):
+        print("reminder check")
+        while True:
+            print("reminder check")
+            with open("data/reminder.json","r") as f: rems = json.loads(f)
+            current=self.datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+            needUpdate=False
+            for rem in enumerate(rems["reminders"]):
+                if rem[1]["time"]<=current:
+                    user = self.bot.get_user(rem[1]["userid"])
+                    dm = await user.create_dm()
+                    await dm.send(rem[1]["message"])
+                    rems["reminders"].remove(rem[0])
+                    needUpdate=True
+            if needUpdate:
+                with open("data/reminder.json","w") as f: f.write(json.dumps(rems))
+            time.sleep(30)
 
 # discord.com/api/oauth2/authorize?client_id=1007622846404644884&permissions=8&scope=bot%20applications.commands
 
