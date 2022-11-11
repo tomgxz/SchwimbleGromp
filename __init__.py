@@ -177,7 +177,6 @@ class SchwimbleGromp():
         self.bot.run(token)
 
     async def remindercheck(self):
-        print("reminder check")
         while True:
             print("reminder check")
             with open("data/reminder.json","r") as f: rems = self.json.loads(f)
