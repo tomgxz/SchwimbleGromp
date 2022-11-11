@@ -20,6 +20,7 @@ class SchwimbleGromp():
         self.os = os
         self.datetime = datetime
         self.random = random
+        self.json = json
 
         self.bot = self.discord_commands.Bot(command_prefix="..", intents=self.discord.Intents.all())
 
@@ -29,6 +30,11 @@ class SchwimbleGromp():
             print(self.bot.user.name)
             print(self.bot.user.id)
             print('------')
+
+        @self.bot.event
+        async def on_command_error(ctx, e):
+            if isinstance(e, discord.ext.commands.errors.CommandNotFound):
+                await ctx.send(embed=ErrorEmbed(ctx=ctx,message=f"{e}").embed)
 
         @self.bot.command()
         async def humanizeSeconds(ctx, n): await ctx.send(self.utils_chatFormatting.humanizeSeconds(n))
@@ -60,7 +66,7 @@ class SchwimbleGromp():
 
         @self.bot.command()
         async def whois(ctx, user: discord.Member = None):
-            if user == None: await ctx.send("You forgot to specify a user")
+            if user == None: await ctx.send(embed=ErrorEmbed(ctx=ctx,message="Please specify a user").embed)
             if user.id == 786895386476281936:
                 await ctx.send("Andrew (the one with the small peen)")
                 await ctx.send("*He's actually Will*")
@@ -174,7 +180,7 @@ class SchwimbleGromp():
         print("reminder check")
         while True:
             print("reminder check")
-            with open("data/reminder.json","r") as f: rems = json.loads(f)
+            with open("data/reminder.json","r") as f: rems = self.json.loads(f)
             current=self.datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
             needUpdate=False
             for rem in enumerate(rems["reminders"]):
@@ -185,7 +191,7 @@ class SchwimbleGromp():
                     rems["reminders"].remove(rem[0])
                     needUpdate=True
             if needUpdate:
-                with open("data/reminder.json","w") as f: f.write(json.dumps(rems))
+                with open("data/reminder.json","w") as f: f.write(self.json.dumps(rems))
             time.sleep(30)
 
 # discord.com/api/oauth2/authorize?client_id=1007622846404644884&permissions=8&scope=bot%20applications.commands
