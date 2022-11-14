@@ -22,7 +22,7 @@ class SchwimbleGromp():
         self.random = random
         self.json = json
 
-        self.bot = self.discord_commands.Bot(command_prefix="..", intents=self.discord.Intents.all())
+        self.bot = self.discord_commands.Bot(command_prefix="test.", intents=self.discord.Intents.all())
 
         @self.bot.event
         async def on_ready():

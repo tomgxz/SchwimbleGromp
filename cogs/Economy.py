@@ -38,6 +38,7 @@ class Economy(commands.Cog):
             self.db.addUser(user.id, guildid, self.defaultUserSettings)
 
     def failrate(self, guildid, job):
+        if job=="heist": return 20
         return self.db.getGuildSetting(guildid, f"failrates_{job}")
 
     def payout(self, guildid, job):
@@ -46,9 +47,8 @@ class Economy(commands.Cog):
             self.db.getGuildSetting(guildid, f"payouts_{job}_max"))
 
     def fine(self, guildid, job):
-        return random.randint(
-            self.db.getGuildSetting(guildid, f"fines_{job}_min"),
-            self.db.getGuildSetting(guildid, f"fines_{job}_max"))
+        if job=="heist": return random.randint(500,2500)
+        return random.randint(self.db.getGuildSetting(guildid, f"fines_{job}_min"),self.db.getGuildSetting(guildid, f"fines_{job}_max"))
 
     # ADMIN COMMANDS
 
@@ -60,27 +60,15 @@ class Economy(commands.Cog):
         Aliases: None"""
 
         async with ctx.typing():
-            if (not ctx.message.author.guild_permissions.administrator) and (
-                    not ctx.message.author.id == 879801241859915837):
-                await ctx.send(embed=PermissionErrorEmbed(
-                    ctx=ctx, permission="administrator").embed)
+            if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id == 879801241859915837):
+                await ctx.send(embed=PermissionErrorEmbed(ctx=ctx, permission="administrator").embed)
                 return
             guild = ctx.guild
             if guild.id not in self.db.getGuildList():
                 self.db.createGuild(guild.id, self.defaultGuildSettings)
-                await ctx.send(embed=Embed(
-                    ctx=ctx,
-                    type=EmbedType.success,
-                    message="This server has been registered!",
-                    fields=[[
-                        "⠀",
-                        "Admins, you can use economySettings to edit the server's economy setting"
-                    ]]).embed)
+                await ctx.send(embed=Embed(ctx=ctx,type=EmbedType.success,message="This server has been registered!",fields=[["⠀","Admins, you can use economySettings to edit the server's economy setting"]]).embed)
                 return
-        await ctx.send(embed=Embed(
-            ctx=ctx,
-            type=EmbedType.error,
-            message="This server has already been registered.").embed)
+        await ctx.send(embed=Embed(ctx=ctx,type=EmbedType.error,message="This server has already been registered.").embed)
 
     @commands.command()
     async def resetserversettings(self, ctx):
@@ -861,6 +849,43 @@ class Economy(commands.Cog):
         commandsUntilCooldownRemaining = self.db.getUserSetting(user.id, guild.id, "commandsUntilCooldownRemaining_slut")
         if commandsUntilCooldownRemaining > 0:  # decrease cooldown value by 1
             self.db.setUserSetting(user.id, guild.id, "commandsUntilCooldownRemaining_slut",wrapQuotes(commandsUntilCooldownRemaining - 1))
+
+    @commands.command(aliases=["h"])
+    async def heist(self,ctx):
+        async with ctx.typing():
+            if (not ctx.message.author.id == 879801241859915837):
+                await ctx.send(embed=PermissionErrorEmbed(ctx=ctx, permission="tom").embed)
+                return
+
+            """
+
+            There is a 80% chance of this command failing, and the user being put in prison. If put in prison, the user cannot use any economy commands for 2 days. There is 60% chance of getting fined 500£ to 2500£, with random generation of how much
+
+            If you succeed, then 5 bank accounts are randomly selected from the top 10
+
+
+
+            """
+
+            if random.randint(1, 100) >= self.failrate(guild.id, "heist") or True:
+                fine = self.fine(guild.id, "heist") if random.randint(1,10) > 4 else 0
+                #self.db.updateUserBalance(user.id, guild.id, -1 * fine,"bank")
+                await ctx.send(embed=ErrorEmbed(ctx=ctx,message=f"YOUR HEIST FAILED!",fields=[["You and your team were put in prison for 2 days - you can't use any economy commands until you are set free"],["You can see when you are let out by using the \"prison\" command"],[f"You were fined {fine} {self.coinname}" if fine > 0 else "You were lucky in court and were not fined"]]).embed)
+
+                await self.newBankBalance(ctx)
+            else:
+                await ctx.send(embed=Embed(ctx=ctx,type=ErrorEmbed.success,message="The heist was successful. (this aint implemnented yet :))"))
+
+
+
+    @commands.command(aliases=["p"])
+    async def prison(self,ctx,user_:discord.Member=None):
+        async with ctx.typing():
+            user=ctx.author
+            if user_!=None: user=user_
+            # if user in prison
+            if False: await ctx.send(embed=Embed(ctx=ctx,message=f"{user if user!=ctx.author else 'You'} are currently in prison"),fields=[["You will be let out on [date]"])
+            else: await ctx.send(embed=Embed(ctx=ctx,message=f"{user if user!=ctx.author else 'You'} are not in prison"))
 
     # ERROR CATCHERS
 
