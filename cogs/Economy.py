@@ -445,7 +445,7 @@ class Economy(commands.Cog):
                 await ctx.send(embed=ErrorEmbed(ctx=ctx, message="You did not specify an amount").embed)
                 return
 
-            bal = self.db.getUserBalances(user.id, ctx.guild.id)[0]
+            bal = self.db.getUserBalances(user.id, ctx.guild.id)[1]
 
             if amount.lower() == "all":
                 await ctx.send(embed=ErrorEmbed(ctx=ctx,message="You cannot send someone all of your money yet").embed)
