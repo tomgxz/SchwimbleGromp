@@ -4,6 +4,14 @@ import discord,time
 class SchwimbleGromp():
 
     def __init__(self):
+        import os
+        self.os = os
+
+        self.logFile="data/log/latest.log"
+        self.sessionFile="data/session.txt"
+
+        self.initLogger()
+
         import discord, os, datetime, random, json, threading
         from discord.ext import commands, tasks
         from utils import keepAlive, formatting, cooldown
@@ -11,39 +19,51 @@ class SchwimbleGromp():
         from dotenv import load_dotenv
         load_dotenv()
 
+        self.logger.info("Initialised dotenv")
+
         self.discord = discord
         self.discord_commands = commands
         self.discord_tasks = tasks
         self.utils_keepAlive = keepAlive
         self.utils_formatting = formatting
         self.utils_cooldown = cooldown
-        self.os = os
         self.datetime = datetime
         self.random = random
         self.json = json
 
+        self.logger.info("Imports completed")
+
+        self.appendSessionFile("datecreated",self.datetime.datetime.now())
+
         self.bot = self.discord_commands.Bot(command_prefix=".", intents=self.discord.Intents.all())
+
+        self.logger.info("Created bot")
 
         @self.bot.event
         async def on_ready():
-            print('Logged in as')
-            print(self.bot.user.name)
-            print(self.bot.user.id)
-            print('------')
+            self.logger.info(f"Logged in as {self.bot.user.name}, {self.bot.user.id}")
 
         @self.bot.event
         async def on_command_error(ctx, e):
             if isinstance(e, discord.ext.commands.errors.CommandNotFound):
+                self.logcommand(ctx)
+                self.logger.info(f"COMMAND ERROR: guild={ctx.guild.name} ({ctx.guild.id}) user={ctx.author.name}#{ctx.author.discriminator} {e}")
                 await ctx.send(embed=ErrorEmbed(ctx=ctx,message=f"{e}").embed)
+            self.logger.error(e)
 
         @self.bot.command()
-        async def humanizeSeconds(ctx, n): await ctx.send(self.utils_chatFormatting.humanizeSeconds(n))
+        async def humanizeSeconds(ctx, n):
+            self.logcommand(ctx)
+            await ctx.send(self.utils_chatFormatting.humanizeSeconds(n))
 
         @self.bot.command()
-        async def kms(ctx): await ctx.send("Father benjamin is bad")
+        async def kms(ctx):
+            self.logcommand(ctx)
+            await ctx.send("Father benjamin is bad")
 
         @self.bot.command()
         async def spam(ctx, msg, amt=69):
+            self.logcommand(ctx)
             if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id==879801241859915837):
                 await ctx.send(embed=PermissionErrorEmbed(ctx=ctx, permission="administrator").embed)
                 return
@@ -54,6 +74,7 @@ class SchwimbleGromp():
 
         @self.bot.command()
         async def clear(ctx, amt):
+            self.logcommand(ctx)
             return
             if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id==879801241859915837):
                 await ctx.send(embed=PermissionErrorEmbed(ctx=ctx, permission="administrator").embed)
@@ -66,6 +87,7 @@ class SchwimbleGromp():
 
         @self.bot.command()
         async def whois(ctx, user: discord.Member = None):
+            self.logcommand(ctx)
             if user == None: await ctx.send(embed=ErrorEmbed(ctx=ctx,message="Please specify a user").embed)
             if user.id == 786895386476281936:
                 await ctx.send("Andrew (the one with the small peen)")
@@ -129,13 +151,125 @@ class SchwimbleGromp():
         from utils.database import Database
         from cogs import Economy, Games, Shop
 
+        self.logger.info("Imported databases and cogs")
+
         self.db = Database()
         self.utils_keepAlive.keepAlive()
+
+        self.logger.info("Started keepAlive")
+
         token = self.os.environ.get("TOKEN")
         Economy.setup(self.bot, self.db)
         Games.setup(self.bot, self.db)
         Shop.setup(self.bot, self.db)
+
+        self.logger.info("Initialized cogs")
+
         self.bot.run(token)
+
+    def initLogger(self):
+        """Initialises the logger and resets the log file"""
+
+        commands=[] # used to store log commands before the log has been generated, so that they can be appended
+
+        #if not (self.os.path.exists(self.sessionFile) or self.os.path.exists(self.logFile)):
+        if self.os.path.exists(self.sessionFile) and self.os.path.exists(self.logFile): # if both files exist, session.txt and latest.log
+            with open(self.sessionFile,"r") as f:
+                lines=f.read()
+                if lines == "": # if there are no lines in the file
+                    commands.append(lambda:self.logger.warning("Session file is empty"))
+                    self.previousSessionData={}
+                else:
+                    self.previousSessionData={line.split(":")[0]:line.split(":")[1] for line in [x.strip("\n") for x in lines.split("\n")]}
+
+            open(self.sessionFile,"w").close() # clear file
+
+            logFileInt=1
+            logFileName=None
+            try:
+                logFileName=f"data/log/{self.previousSessionData['datecreated']}-%.log"
+            except KeyError as e: # no attribute found in the session data
+                commands.append(lambda:self.logger.error("No date created attribute in session file - previous log file will be deleted"))
+            else:
+                while True:
+                    if self.os.path.exists(logFileName.replace("%",str(logFileInt))):
+                        logFileInt+=1
+                    else:
+                        break
+
+                with open(self.logFile,"r") as f1:
+                    with open(logFileName.replace("%",str(logFileInt)),"w") as f2:
+                        f2.write(f1.read())
+
+            open(self.logFile,"w").close() # clear file
+
+        elif self.os.path.exists(self.sessionFile) and not(self.os.path.exists(self.logFile)): # if latest.log doesnt exist
+            commands.append(lambda:self.logger.warning("Previous log file does not exist"))
+            if not self.os.path.exists("data/log/"):
+                self.os.makedirs("data/log/")
+            open(self.logFile,"w").close()
+
+        elif (not self.os.path.exists(self.sessionFile)) and (not self.os.path.exists(self.logFile)): # if neither exists
+            commands.append(lambda:self.logger.warning("Previous log file does not exist"))
+            commands.append(lambda:self.logger.warning("Session file does not exist"))
+
+            # clear both files
+            open(self.logFile,"w").close()
+            open(self.sessionFile,"w").close()
+
+        else: # anything else
+            commands.append(lambda:self.logger.warning("Session file does not exist"))
+
+            # clear both files
+            open(self.logFile,"w").close()
+            open(self.sessionFile,"w").close()
+
+        try:
+            from utils.logger import Logger
+
+        except ModuleNotFoundError as e: # import error
+            raise ModuleNotFoundError(e)
+
+        else:
+
+            self.logger=Logger(sessionFile=self.sessionFile,logFile=self.logFile) # generate the logger
+
+            for command in commands:
+                command()
+
+            self.logger.info("Logging initialised")
+
+    def appendSessionFile(self,key,value):
+        """
+        Adds an entry to the session.txt file found in the data/ directory. Entry is in the format <param key>:<param value>
+
+        :param key str:
+            The key of the entry. Will be succeeded by :param value:
+        :param value str:
+            The value of the entry. Will be prefixed by :param key:
+
+        :returns: A boolean determining whether the process was successful
+        :rtype: bool
+        """
+
+        self.logger.info("Appending data to session file")
+
+        with open(self.sessionFile,"r") as f:
+            old=f.read()
+            f.close()
+
+        with open(self.sessionFile,"w") as f:
+            if old != "":
+                f.write(f"{old}\n{key}:{value}")
+            else:
+                f.write(f"{key}:{value}")
+
+        self.logger.info("Data appended to session file")
+
+        return True
+
+    def logcommand(self,ctx): self.logger.info(f"COMMAND: guild={ctx.guild.name} ({ctx.guild.id}) user={ctx.author.name}#{ctx.author.discriminator} \"{ctx.message.content}\"")
+
 
 # discord.com/api/oauth2/authorize?client_id=1007622846404644884&permissions=8&scope=bot%20applications.commands
 

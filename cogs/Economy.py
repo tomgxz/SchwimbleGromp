@@ -12,6 +12,9 @@ class Economy(commands.Cog):
         self.bot = bot
         self.db = database
 
+        #from utils.logger import Logger
+        #self.logger=Logger(sessionFile="data/session.txt",logFile="data/log/latest.log" ) # generate the logger
+
         with open("data/defaultGuildSettings.json", "r") as f:
             self.defaultGuildSettings = json.load(f)
         with open("data/defaultUserSettings.json", "r") as f:
@@ -50,6 +53,8 @@ class Economy(commands.Cog):
         if job=="heist": return random.randint(500,2500)
         return random.randint(self.db.getGuildSetting(guildid, f"fines_{job}_min"),self.db.getGuildSetting(guildid, f"fines_{job}_max"))
 
+    def logcommand(self,ctx): pass#self.logger.info(f"COMMAND: guild={ctx.guild.name} ({ctx.guild.id}) user={ctx.author.name}#{ctx.author.discriminator} \"{ctx.message.content}\"")
+
     # ADMIN COMMANDS
 
     @commands.command()
@@ -58,6 +63,7 @@ class Economy(commands.Cog):
         Arguments: None
         Permission required: administrator
         Aliases: None"""
+        self.logcommand(ctx)
 
         async with ctx.typing():
             if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id == 879801241859915837):
@@ -72,6 +78,7 @@ class Economy(commands.Cog):
 
     @commands.command()
     async def resetserversettings(self, ctx):
+        self.logcommand(ctx)
         async with ctx.typing():
             if (not ctx.message.author.guild_permissions.administrator) and (
                     not ctx.message.author.id == 879801241859915837):
@@ -94,6 +101,7 @@ class Economy(commands.Cog):
 
     @commands.command()
     async def setuserbalance(self,ctx,user: discord.Member = None,store=None,amount=None):
+        self.logcommand(ctx)
         async with ctx.typing():
             if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id == 879801241859915837):
                 await ctx.send(embed=PermissionErrorEmbed(ctx=ctx, permission="administrator").embed)
@@ -126,6 +134,7 @@ class Economy(commands.Cog):
 
     @commands.command()
     async def setusercooldown(self,ctx,user: discord.Member = None,command=None):
+        self.logcommand(ctx)
         async with ctx.typing():
             if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id == 879801241859915837):
                 await ctx.send(embed=PermissionErrorEmbed(ctx=ctx, permission="administrator").embed)
@@ -150,6 +159,7 @@ class Economy(commands.Cog):
 
     @commands.command()
     async def setserversetting(self, ctx, key, value):
+        self.logcommand(ctx)
         async with ctx.typing():
             if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id == 879801241859915837):
                 await ctx.send(embed=PermissionErrorEmbed(ctx=ctx, permission="administrator").embed)
@@ -161,6 +171,7 @@ class Economy(commands.Cog):
 
     @commands.command()
     async def setusersetting(self, ctx, user: discord.Member, key, value):
+        self.logcommand(ctx)
         async with ctx.typing():
             if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id == 879801241859915837):
                 await ctx.send(embed=PermissionErrorEmbed(ctx=ctx, permission="administrator").embed)
@@ -180,6 +191,7 @@ class Economy(commands.Cog):
         Arguments: user, optional, user ping of the user you want to see the balance of
         Permission required: None
         Aliases: bal, b"""
+        self.logcommand(ctx)
 
         async with ctx.typing():
             if user is None: user = ctx.author
@@ -194,6 +206,7 @@ class Economy(commands.Cog):
         Arguments: amount, optional, defaults to 10 (can be changed in settings), defines the amount of users listed
         Permission required: None
         Aliases: lb"""
+        self.logcommand(ctx)
 
         async with ctx.typing():
             coinname = self.db.getGuildSetting(ctx.guild.id, "coinname")

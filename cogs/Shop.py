@@ -26,6 +26,8 @@ class Shop(commands.Cog):
     async def openAccount(self,user,guildid):
         if user.id not in self.db.getDiscordUserList(guildid): self.db.addUser(user.id,guildid,self.defaultUserSettings)
 
+    def logcommand(self,ctx): pass#self.logger.info(f"COMMAND: guild={ctx.guild.name} ({ctx.guild.id}) user={ctx.author.name}#{ctx.author.discriminator} \"{ctx.message.content}\"")
+
     # COMMANDS
 
     @commands.command()

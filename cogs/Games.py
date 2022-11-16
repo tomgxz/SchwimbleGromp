@@ -39,6 +39,8 @@ class Games(commands.Cog):
         if user.id not in self.db.getDiscordUserList(guildid):
             self.db.addUser(user.id, guildid, self.defaultUserSettings)
 
+    def logcommand(self,ctx): pass#self.logger.info(f"COMMAND: guild={ctx.guild.name} ({ctx.guild.id}) user={ctx.author.name}#{ctx.author.discriminator} \"{ctx.message.content}\"")
+
     # GAMES
 
     @commands.command(aliases=["cf"])
@@ -212,75 +214,41 @@ class Games(commands.Cog):
             # COOLDOWN HANDLING
 
             cooldownCommand = "blackjack"
-            commandsUntilCooldown = self.db.getGuildSetting(
-                guild.id, f"commandsUntilCooldown_{cooldownCommand}")
-            commandsUntilCooldownRemaining = self.db.getUserSetting(
-                user.id, guild.id,
-                f"commandsUntilCooldownRemaining_{cooldownCommand}")
-            firstCommandExecuted = self.db.getUserSetting(
-                user.id, guild.id, f"firstCommandExecuted_{cooldownCommand}")
-            cooldownLength = self.db.getGuildSetting(
-                guild.id, f"cooldowns_{cooldownCommand}")
+            commandsUntilCooldown = self.db.getGuildSetting(guild.id, f"commandsUntilCooldown_{cooldownCommand}")
+            commandsUntilCooldownRemaining = self.db.getUserSetting(user.id, guild.id,f"commandsUntilCooldownRemaining_{cooldownCommand}")
+            firstCommandExecuted = self.db.getUserSetting(user.id, guild.id, f"firstCommandExecuted_{cooldownCommand}")
+            cooldownLength = self.db.getGuildSetting(guild.id, f"cooldowns_{cooldownCommand}")
 
             if commandsUntilCooldownRemaining == 0:  # if the cooldown is active (at 0)
-                cooldowns = self.db.getUserSetting(
-                    user.id, guild.id, f"cooldowns_{cooldownCommand}")
-                cooldowndiff = cooldown.cooldownDiff(
-                    datetime.datetime.now(),
-                    cooldown.cooldownStrToObj(cooldowns))
+                cooldowns = self.db.getUserSetting(user.id, guild.id, f"cooldowns_{cooldownCommand}")
+                cooldowndiff = cooldown.cooldownDiff(datetime.datetime.now(),cooldown.cooldownStrToObj(cooldowns))
 
                 if cooldowndiff >= cooldownLength:  # if the cooldown has completed, reset the cooldown stats and run the command
-                    self.db.setUserSetting(
-                        user.id, guild.id,
-                        f"commandsUntilCooldownRemaining_{cooldownCommand}",
-                        commandsUntilCooldown)
+                    self.db.setUserSetting(user.id, guild.id,f"commandsUntilCooldownRemaining_{cooldownCommand}",commandsUntilCooldown)
                     commandsUntilCooldownRemaining = commandsUntilCooldown
-                    self.db.setUserSetting(
-                        user.id, guild.id,
-                        f"firstCommandExecuted_{cooldownCommand}", '""')
+                    self.db.setUserSetting(user.id, guild.id,f"firstCommandExecuted_{cooldownCommand}", '""')
 
                 else:  # if the cooldown is still active stop the command
-                    await ctx.send(
-                        embed=CooldownEmbed(ctx=ctx,
-                                            message=f"play blackjack",
-                                            remainingTime=cooldownLength -
-                                            cooldowndiff).embed)
+                    await ctx.send(embed=CooldownEmbed(ctx=ctx,message=f"play blackjack",remainingTime=cooldownLength-cooldowndiff).embed)
                     return
 
             if firstCommandExecuted != "":
-                if cooldown.cooldownDiff(
-                        datetime.datetime.now(),
-                        cooldown.cooldownStrToObj(firstCommandExecuted)
-                ) > self.db.getGuildSetting(
-                        guild.id, f"commandsUntilCooldownResetTime"
-                ):  # if the time since the first command is greater than the command reset window time
-                    self.db.setUserSetting(
-                        user.id, guild.id,
-                        f"commandsUntilCooldownRemaining_{cooldownCommand}",
-                        wrapQuotes(commandsUntilCooldown))
+                if cooldown.cooldownDiff(datetime.datetime.now(),cooldown.cooldownStrToObj(firstCommandExecuted)) > self.db.getGuildSetting(guild.id, f"commandsUntilCooldownResetTime"):  # if the time since the first command is greater than the command reset window time
+                    self.db.setUserSetting(user.id, guild.id,f"commandsUntilCooldownRemaining_{cooldownCommand}",wrapQuotes(commandsUntilCooldown))
 
             if commandsUntilCooldownRemaining == commandsUntilCooldown:  # if the first command has not yet been executed set the start time for the command reset window
-                self.db.setUserSetting(
-                    user.id, guild.id,
-                    f"firstCommandExecuted_{cooldownCommand}",
-                    wrapQuotes(cooldown.currentCooldownTime()))
+                self.db.setUserSetting(user.id, guild.id,f"firstCommandExecuted_{cooldownCommand}",wrapQuotes(cooldown.currentCooldownTime()))
 
-            if commandsUntilCooldownRemaining == 1:
-                self.db.setUserSetting(
-                    user.id, guild.id, f"cooldowns_{cooldownCommand}",
-                    wrapQuotes(cooldown.currentCooldownTime()))
+            if commandsUntilCooldownRemaining == 1: self.db.setUserSetting(user.id, guild.id, f"cooldowns_{cooldownCommand}",wrapQuotes(cooldown.currentCooldownTime()))
 
             # COMMAND HANDLING
 
             if bet == None:
-                await ctx.send(embed=ErrorEmbed(
-                    ctx=ctx,
-                    message="You did not specify an amount to bet on").embed)
+                await ctx.send(embed=ErrorEmbed(ctx=ctx,message="You did not specify an amount to bet on").embed)
                 return
 
             if not bet.isdigit():
-                await ctx.send(embed=ErrorEmbed(
-                    ctx=ctx, message="`Bet` needs to be a whole number").embed)
+                await ctx.send(embed=ErrorEmbed(ctx=ctx, message="`Bet` needs to be a whole number").embed)
                 return
 
             bet = int(bet)
@@ -290,15 +258,13 @@ class Games(commands.Cog):
             betmax = self.db.getGuildSetting(guild.id, "betting_max")
 
             if bet > bal:
-                await ctx.send(embed=WalletAmountInsufficientEmbed(
-                    ctx=ctx).embed)
+                await ctx.send(embed=WalletAmountInsufficientEmbed(ctx=ctx).embed)
                 return
             if bet < betmin:
                 await ctx.send(embed=BetTooLowEmbed(ctx=ctx, min=betmin).embed)
                 return
             if bet > betmax:
-                await ctx.send(embed=BetTooHighEmbed(ctx=ctx, max=betmax).embed
-                               )
+                await ctx.send(embed=BetTooHighEmbed(ctx=ctx, max=betmax).embed)
                 return
 
             embed, result = await startBlackjack(ctx)
@@ -306,53 +272,27 @@ class Games(commands.Cog):
             await ctx.send(embed=embed)
 
             if result == "loss":
-                self.db.updateUserBalance(user.id, guild.id, -1 * bet,
-                                          "wallet")
-                await ctx.send(embed=ErrorEmbed(
-                    ctx=ctx,
-                    message=
-                    f"You lost the game of blackjack and lost {humanize.humanizeNumber(bet)} {coinname}"
-                ).embed)
+                self.db.updateUserBalance(user.id, guild.id, -1 * bet,"wallet")
+                await ctx.send(embed=ErrorEmbed(ctx=ctx,message=f"You lost the game of blackjack and lost {humanize.humanizeNumber(bet)} {coinname}").embed)
                 await self.newWalletBalance(ctx)
                 if commandsUntilCooldownRemaining > 0:  # decrease cooldown value by 1
-                    self.db.setUserSetting(
-                        user.id, guild.id,
-                        f"commandsUntilCooldownRemaining_{cooldownCommand}",
-                        wrapQuotes(commandsUntilCooldownRemaining - 1))
+                    self.db.setUserSetting(user.id, guild.id,f"commandsUntilCooldownRemaining_{cooldownCommand}",wrapQuotes(commandsUntilCooldownRemaining - 1))
                 return
             if result == "draw":
-                await ctx.send(embed=Embed(
-                    ctx=ctx,
-                    type=EmbedType.gray,
-                    message=
-                    f"You drew the game of blackjack and didn't get any {coinname}"
-                ).embed)
+                await ctx.send(embed=Embed(ctx=ctx,type=EmbedType.gray,message=f"You drew the game of blackjack and didn't get any {coinname}").embed)
                 if commandsUntilCooldownRemaining > 0:  # decrease cooldown value by 1
-                    self.db.setUserSetting(
-                        user.id, guild.id,
-                        f"commandsUntilCooldownRemaining_{cooldownCommand}",
-                        wrapQuotes(commandsUntilCooldownRemaining - 1))
+                    self.db.setUserSetting(user.id, guild.id,f"commandsUntilCooldownRemaining_{cooldownCommand}",wrapQuotes(commandsUntilCooldownRemaining - 1))
                 return
 
         self.db.updateUserBalance(user.id, guild.id, bet, "wallet")
 
-        await ctx.send(embed=Embed(
-            ctx=ctx,
-            type=EmbedType.success,
-            message=
-            f"You won the game of blackjack and recieved {humanize.humanizeNumber(bet)} {coinname} in return"
-        ).embed)
+        await ctx.send(embed=Embed(ctx=ctx,type=EmbedType.success,message=f"You won the game of blackjack and recieved {humanize.humanizeNumber(bet)} {coinname} in return").embed)
         await self.newWalletBalance(ctx)
 
         # make sure the amount of allowed commands remaining is decreased
-        commandsUntilCooldownRemaining = self.db.getUserSetting(
-            user.id, guild.id,
-            f"commandsUntilCooldownRemaining_{cooldownCommand}")
+        commandsUntilCooldownRemaining = self.db.getUserSetting(user.id, guild.id,f"commandsUntilCooldownRemaining_{cooldownCommand}")
         if commandsUntilCooldownRemaining > 0:  # decrease cooldown value by 1
-            self.db.setUserSetting(
-                user.id, guild.id,
-                f"commandsUntilCooldownRemaining_{cooldownCommand}",
-                wrapQuotes(commandsUntilCooldownRemaining - 1))
+            self.db.setUserSetting(user.id, guild.id,f"commandsUntilCooldownRemaining_{cooldownCommand}",wrapQuotes(commandsUntilCooldownRemaining - 1))
 
     @commands.command()
     async def slots(self, ctx, bet=None):
@@ -455,8 +395,7 @@ class Games(commands.Cog):
                 await ctx.send(embed=BetTooLowEmbed(ctx=ctx, min=betmin).embed)
                 return
             if bet > betmax:
-                await ctx.send(embed=BetTooHighEmbed(ctx=ctx, max=betmax).embed
-                               )
+                await ctx.send(embed=BetTooHighEmbed(ctx=ctx, max=betmax).embed)
                 return
 
             #final = []
@@ -464,17 +403,11 @@ class Games(commands.Cog):
             #    a = random.choice([':star:',':star:',':apple:',':apple:',':banana:',':banana:',':tangerine:',':tangerine:',':skull:'])
             #    final.append(a)
 
-            final = random.choices(
-                [':star:', ':apple:', ':banana:', ':tangerine:', ':skull:'],
-                weights=[2, 2, 2, 2, 1],
-                k=3)
+            final = random.choices([':star:', ':apple:', ':banana:', ':tangerine:', ':skull:'],weights=[2, 2, 2, 2, 1],k=3)
 
             if user.id == 879801241859915837:
-                final = random.choices([
-                    ':star:', ':apple:', ':banana:', ':tangerine:', ':skull:'
-                ],
-                                       weights=[4, 2, 2, 2, 1],
-                                       k=3)
+                i=random.randint(0,3)
+                final = random.choices([':star:', ':apple:', ':banana:', ':tangerine:', ':skull:'],weights=[50 if i==0 else 10,25 if i==1 else 10,25 if i==2 else 10,25 if i==3 else 10,1],k=3)
 
             f = [[final[0], "Slot1"], [final[1], "Slot2"], [final[2], "Slot3"]]
 

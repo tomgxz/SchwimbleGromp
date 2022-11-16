@@ -245,7 +245,7 @@ INSERT INTO User(discorduserid,guildid,commandsUntilCooldownRemaining_work,comma
         return [x[1] for x in self.cursor.fetchall()]
 
     def getGuildSetting(self, guildid, key):
-        print(f"SELECT {key} FROM Guild WHERE guildid={guildid}")
+        #print(f"SELECT {key} FROM Guild WHERE guildid={guildid}")
         self.cursor.execute(f"SELECT {key} FROM Guild WHERE guildid={guildid}")
         return self.cursor.fetchall()[0][0]
 
