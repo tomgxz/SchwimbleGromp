@@ -11,11 +11,7 @@ def hasPermissions(*,check=all,**perms):
     async def pred(ctx): return await check_permissions(ctx, perms, check=check)
     return commands.check(pred)
 
-def canSend(ctx):
-    return (isinstance(ctx.channel, discord.DMChannel) or ctx.channel.permissions_for(ctx.guild.me).send_messages)
-def canEmbed(ctx):
-    return (isinstance(ctx.channel, discord.DMChannel) or ctx.channel.permissions_for(ctx.guild.me).embed_links)
-def canUpload(ctx):
-    return (isinstance(ctx.channel, discord.DMChannel) or ctx.channel.permissions_for(ctx.guild.me).attach_filesz)
-def canReact(ctx):
-    return (isinstance(ctx.channel, discord.DMChannel) or ctx.channel.permissions_for(ctx.guild.me).add_reactions)
+def canSend(ctx): return (isinstance(ctx.channel, discord.DMChannel) or ctx.channel.permissions_for(ctx.guild.me).send_messages)
+def canEmbed(ctx): return (isinstance(ctx.channel, discord.DMChannel) or ctx.channel.permissions_for(ctx.guild.me).embed_links)
+def canUpload(ctx): return (isinstance(ctx.channel, discord.DMChannel) or ctx.channel.permissions_for(ctx.guild.me).attach_filesz)
+def canReact(ctx): return (isinstance(ctx.channel, discord.DMChannel) or ctx.channel.permissions_for(ctx.guild.me).add_reactions)

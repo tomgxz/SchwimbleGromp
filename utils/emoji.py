@@ -68,10 +68,8 @@ def getCard(name):
 
 def getEmoji(name):
     e=getCard(name)
-    if e!=None:
-        return e
-    if not(name in emojis):
-        return None
+    if e!=None: return e
+    if not(name in emojis): return None
     return f"<:{name}:{emojis[name]}>"
 
 async def printAll(ctx):

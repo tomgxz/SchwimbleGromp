@@ -1,6 +1,7 @@
 import random, enum, discord
 from utils.emoji import getCard, getEmoji
 from utils.embed import Embed, EmbedType
+from .assets import strings,config
 
 class BlackjackGame:
     def __init__(self,ctx):
@@ -63,9 +64,9 @@ class BlackjackGame:
     async def hitOrStand(self):
         response = await self.ctx.bot.wait_for('message', check=lambda message: message.author == self.ctx.author)
         while response.content.lower() not in ["hit","stick"]:
-            await self.ctx.send("Invalid input, try again")
+            await self.ctx.send(strings.INVALID_INPUT)
             response = await self.ctx.bot.wait_for('message', check=lambda message: message.author == self.ctx.author)
-        return response.content == "hit"
+        return response.content.lower() == "hit"
 
     def dealPlayer(self):
         card=self.dealCard()
@@ -137,50 +138,67 @@ class BlackjackGame:
     def outputOutcome(self,user,pc,dc,wincondition):
         result=""
         result1=""
-        if wincondition == self.WinConditions.playerBlackJack: result="Blackjack"
-        if wincondition == self.WinConditions.playerBust: result="Bust"
-        if wincondition == self.WinConditions.playerHigher: result="Win"
-        if wincondition == self.WinConditions.dealerBlackJack: result="Dealer Blackjack"
-        if wincondition == self.WinConditions.dealerBust: result="Dealer Bust"
-        if wincondition == self.WinConditions.dealerHigher: result="Lose"
-        if wincondition == self.WinConditions.draw: result="Draw"
+        if wincondition == self.WinConditions.playerBlackJack: result=strings.RESULT_BLACKJACK
+        if wincondition == self.WinConditions.playerBust: result=strings.RESULT_BLACKJACK
+        if wincondition == self.WinConditions.playerHigher: result=strings.RESULT_BUST
+        if wincondition == self.WinConditions.dealerBlackJack: result=strings.RESULT_DBLACKJACK
+        if wincondition == self.WinConditions.dealerBust: result=strings.RESULT_DBUST
+        if wincondition == self.WinConditions.dealerHigher: result=strings.RESULT_LOSE
+        if wincondition == self.WinConditions.draw: result=strings.RESULT_DRAW
+
         color=0xa3a3a3
         result1="draw"
+        type=EmbedType.gray
+
         if wincondition in [self.WinConditions.playerBlackJack,self.WinConditions.playerHigher,self.WinConditions.dealerBust]:
             color=0x66bb6a
             result1="win"
+            type=EmbedType.success
+
         if wincondition in [self.WinConditions.dealerBlackJack,self.WinConditions.dealerHigher,self.WinConditions.playerBust]:
             color=0xEF5350
+            type=EmbedType.error
             result1="loss"
 
-        embed=discord.Embed(title=" ", description=f"Result: {result}", color=color)
-
         pcards=""
         for card in pc: pcards=pcards+getCard(card.emojiTag)
-        pcards+=f"\n\nValue: {self.ps}"
+        pcards+="\n\n"+strings.VALUE % str(self.ps)
+
         dcards=""
         for card in dc: dcards=dcards+getCard(card.emojiTag)
-        dcards+=f"\n\nValue: {self.ds}"
-        embed.add_field(name="**Your Hand**",value=pcards,inline=True)
-        embed.add_field(name="**Dealer's Hand**",value=dcards,inline=True)
-        embed.set_author(name='{0.name}#{0.discriminator}'.format(user), icon_url=user.avatar_url)
-        return embed, result1
+        dcards+="\n\n"+strings.VALUE % str(self.ds)
+
+        return Embed(
+            ctx=self.ctx,
+            type=type,
+            message=strings.RESULT%result,
+            fields=[[strings.YOUR_HAND,pcards],[strings.DEALERS_HAND,dcards]],
+            inline=True,
+        ).embed, result1
 
     def outputCurrentScores(self,user,pc,dc,ps,remaining):
-        embed=discord.Embed(title=" ", description="Type `hit` to draw another card, or `stick` to pass.", color=0x03a9f4)
+        #embed=discord.Embed(title=" ", description=strings.HIT_OR_STICK, color=0x03a9f4)
 
         pcards=""
         for card in pc: pcards=pcards+getCard(card.emojiTag)
-        pcards+=f"\n\nValue: {ps}"
+        pcards+="\n\n"+strings.VALUE % str(ps)
 
         dcards=getCard(dc[0].emojiTag)
         for i in range(len(dc)-1): dcards=dcards+getCard("CardBack")
-        dcards+=f"\n\nValue: ?"
-        embed.add_field(name="**Your Hand**",value=pcards,inline=True)
-        embed.add_field(name="**Dealer's Hand**",value=dcards,inline=True)
-        embed.set_author(name='{0.name}#{0.discriminator}'.format(user), icon_url=user.avatar_url)
-        embed.set_footer(text=f"Cards remaining: {remaining}")
-        return embed
+        dcards+="\n\n"+strings.VALUE % "?"
+        #embed.add_field(name=strings.YOUR_HAND,value=pcards,inline=True)
+        #embed.add_field(name=strings.DEALERS_HAND,value=dcards,inline=True)
+        #embed.set_author(name='{0.name}#{0.discriminator}'.format(user), icon_url=user.avatar_url)
+        #embed.set_footer(text=strings.CARDS_REMAINING % remaining)
+        #return embed
+
+        return Embed(
+            ctx=self.ctx,
+            message=strings.HIT_OR_STICK,
+            fields=[[strings.YOUR_HAND,pcards],[strings.DEALERS_HAND,dcards]],
+            inline=True,
+            footer=strings.CARDS_REMAINING % str(remaining)
+        ).embed
 
 async def startBlackjack(ctx):
     game=BlackjackGame(ctx)

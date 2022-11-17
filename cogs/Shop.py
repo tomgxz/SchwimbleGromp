@@ -6,9 +6,10 @@ from utils import formatting as humanize
 import pickle, json, datetime
 
 class Shop(commands.Cog):
-    def __init__(self,bot,database):
-        self.bot = bot
-        self.db = database
+    def __init__(self,bot,database,logger):
+        self.bot=bot
+        self.db=database
+        self.logger=logger
 
         with open("data/defaultGuildSettings.json", "r") as f:
             self.defaultGuildSettings = json.load(f)
@@ -26,7 +27,7 @@ class Shop(commands.Cog):
     async def openAccount(self,user,guildid):
         if user.id not in self.db.getDiscordUserList(guildid): self.db.addUser(user.id,guildid,self.defaultUserSettings)
 
-    def logcommand(self,ctx): pass#self.logger.info(f"COMMAND: guild={ctx.guild.name} ({ctx.guild.id}) user={ctx.author.name}#{ctx.author.discriminator} \"{ctx.message.content}\"")
+    def logcommand(self,ctx): self.logger.info(f"COMMAND: guild={ctx.guild.name} ({ctx.guild.id}) user={ctx.author.name}#{ctx.author.discriminator} \"{ctx.message.content}\"")
 
     # COMMANDS
 
@@ -162,5 +163,4 @@ class Shop(commands.Cog):
         await ctx.send(embed=Embed(ctx=ctx,message=f"One {item} costs {self.db.getGuildSetting(guild.id,f'shop_{item}_price')} {coinname}").embed)
 
 
-def setup(bot,database):
-    bot.add_cog(Shop(bot,database))
+def setup(bot,database,logger): bot.add_cog(Shop(bot,database,logger))
