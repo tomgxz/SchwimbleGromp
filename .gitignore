@@ -1,6 +1,8 @@
 Procfile
 replit.nix
 .replit
+data/channellogs/
+data/session.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -131,3 +133,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+data/session.txt
+data/session.txt

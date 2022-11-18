@@ -14,7 +14,7 @@ class SchwimbleGromp():
 
         import discord,os,datetime,random,json,threading
         from discord.ext import commands,tasks
-        from utils import keepAlive,formatting,cooldown
+        from utils import keepAlive,formatting,cooldown,channellogger
 
         from dotenv import load_dotenv
         load_dotenv()
@@ -31,6 +31,8 @@ class SchwimbleGromp():
         self.random=random
         self.json=json
 
+        self.channellogger=channellogger.ChannelLogger()
+
         self.logger.info("Imports completed")
 
         self.appendSessionFile("datecreated",self.datetime.datetime.now())
@@ -42,6 +44,12 @@ class SchwimbleGromp():
         @self.bot.event
         async def on_ready():
             self.logger.info(f"Logged in as {self.bot.user.name}, {self.bot.user.id}")
+
+        @self.bot.event
+        async def on_message(ctx):
+            self.logger.info(f"MESSAGE: GUILD: \"{ctx.guild.name}\" CHANNEL: \"{ctx.channel.name}\" USER: \"{ctx.author.name}\" MESSAGE: \"{ctx.content}\"")
+            self.channellogger.logmsg(ctx)
+            await self.bot.process_commands(ctx)
 
         @self.bot.event
         async def on_command_error(ctx,e):
