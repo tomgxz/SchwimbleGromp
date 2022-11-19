@@ -713,7 +713,7 @@ class Economy(commands.Cog):
 
             earning = random.randint(amount // 2, amount)
 
-            if random.randint(1, 100) >= self.failrate(guild.id, "rob"):
+            if False:#random.randint(1, 100) >= self.failrate(guild.id, "rob"):
                 fine = self.fine(guild.id, "rob")
                 self.db.updateUserBalance(user.id, guild.id, -1 * fine,"wallet")
                 await ctx.send(embed=ErrorEmbed(ctx=ctx,message=strings.FAIL_ROB%(victim.display_name,humanize.humanizeNumber(fine),coinname)).embed)

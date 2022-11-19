@@ -32,7 +32,7 @@ AMOUNT_WHOLE_NUMBER = "`Amount` needs to be a whole number"
 CANT_SEND_ALL = "You cannot send someone all of your money"
 CANT_ROB_SELF = "You cannot rob yourself"
 
-DOENST_HAVE_MONEY = "%s does not have any money on them"
+DOESNT_HAVE_MONEY = "%s does not have any money on them"
 
 WITHDRAW_DEBT = "You can't withdraw while you are in debt"
 WITHDRAW_ZERO = "You can't withdraw without any %s in your bank"
