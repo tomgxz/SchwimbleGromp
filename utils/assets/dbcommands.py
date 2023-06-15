@@ -1,6 +1,0 @@
-FOREIGN_KEYS = "PRAGMA foreign_keys = ON"
-SELECT_GUILD = "SELECT * FROM Guild"
-SELECT_KEY_GUILD_WHERE_GUILD = "SELECT %s FROM Guild where guildid=%s"
-SELECT_USER_WHERE_GUILD = "SELECT * FROM User WHERE guildid=%s"
-SELECT_USER_WHERE_ID_GUILD = "SELECT * FROM User WHERE discorduserid=%s AND guildid=%s"
-SELECT_KEY_USER_WHERE_ID_GUILD = "SELECT %s FROM User WHERE discorduserid=%s AND guildid=%s"
