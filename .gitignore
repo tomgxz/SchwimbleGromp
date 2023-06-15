@@ -3,6 +3,8 @@ replit.nix
 .replit
 data/channellogs/
 data/session.txt
+data/economydata.db
+data/economydata.db.*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
