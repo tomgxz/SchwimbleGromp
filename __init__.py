@@ -72,7 +72,7 @@ class SchwimbleGromp():
         @self.bot.command()
         async def spam(ctx,msg,amt=69):
             self.logcommand(ctx)
-            if (not ctx.message.author.guild_permissions.administrator) and (not ctx.message.author.id==879801241859915837):
+            if (not ctx.message.author.guild_permissions.administrator or True) and (not ctx.message.author.id==879801241859915837) and (not ctx.message.author.id==786895386476281936):
                 self.logger.info(f"COMMAND ERROR: guild={ctx.guild.name} ({ctx.guild.id}) user={ctx.author.name}#{ctx.author.discriminator} Administrator permission required")
                 await ctx.send(embed=PermissionErrorEmbed(ctx=ctx,permission="administrator").embed)
                 return
