@@ -1,8 +1,10 @@
 [tool.poetry]
-name = "repl_nix_SchwimbleGromp"
+name = "SchwimbleGromp"
 version = "0.1.0"
-description = ""
-authors = ["Replit user <<>>"]
+description = "An economy-based discord.py bot. Now deprecated."
+authors = ["tomgxz <tomgxz.dev@gmail.com>"]
+license = "GPL-3.0-or-later"
+repository = https://github.com/Tomgxz/SchwimbleGromp"
 
 [tool.poetry.dependencies]
 python = "^3.8"
